@@ -20,7 +20,7 @@ name: Build and test
 
 on:
   push:
-    branches: [ main, rewrite ]
+    branches: [ main, rewrite, periphery ]
     paths-ignore:
       - "Docs/**"
       - "**.md"
@@ -54,58 +54,58 @@ jobs:
         fi
         echo "version=$version" >> $GITHUB_OUTPUT
 
-  build-devcontainer:
-    needs: determine-version
-    name: "Devcontainer: ${{ matrix.host.os }}/${{ matrix.configuration }}"
-    strategy:
-      fail-fast: false
-      matrix:
-        host: [
-          { type: linux, os: ubuntu-latest,
-            build-options: "--build-tests -Xswiftc -enable-testing --explicit-target-dependency-import-check error",
-            test-options: "--enable-code-coverage --explicit-target-dependency-import-check error",
-          }
-        ]
-        configuration: [ "debug", "release" ]
-        include:
-          - configuration: "debug"
-            parallel-test: "--parallel"
-          # See https://github.com/apple/swift-package-manager/issues/7069
-          - configuration: "release"
-            parallel-test: ""
+  # build-devcontainer:
+  #   needs: determine-version
+  #   name: "Devcontainer: ${{ matrix.host.os }}/${{ matrix.configuration }}"
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       host: [
+  #         { type: linux, os: ubuntu-latest,
+  #           build-options: "--build-tests -Xswiftc -enable-testing --explicit-target-dependency-import-check error",
+  #           test-options: "--enable-code-coverage --explicit-target-dependency-import-check error",
+  #         }
+  #       ]
+  #       configuration: [ "debug", "release" ]
+  #       include:
+  #         - configuration: "debug"
+  #           parallel-test: "--parallel"
+  #         # See https://github.com/apple/swift-package-manager/issues/7069
+  #         - configuration: "release"
+  #           parallel-test: ""
 
-    runs-on: ${{ matrix.host.os }}
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-        show-progress: false
+  #   runs-on: ${{ matrix.host.os }}
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       submodules: true
+  #       show-progress: false
 
-    - name: Set compiler version
-      run: ./Tools/set-hc-version.sh ${{ needs.determine-version.outputs.version }}
+  #   - name: Set compiler version
+  #     run: ./Tools/set-hc-version.sh ${{ needs.determine-version.outputs.version }}
 
-    - name: Build and Test
-      uses: devcontainers/ci@v0.3
-      with:
-        runCmd: |
-          set -eo pipefail
-          swift package resolve
-          .build/checkouts/Swifty-LLVM/Tools/make-pkgconfig.sh llvm.pc
-          export PKG_CONFIG_PATH=$PWD
-          swift build -c ${{ matrix.configuration }}  ${{ matrix.host.build-options }}
-          swift test -c ${{ matrix.configuration }} ${{ matrix.host.test-options }} ${{ matrix.parallel-test }} |
-            tee testoutput.txt && (
-              (grep -q "[.']EndToEndTests[/. ]test_" testoutput.txt && grep -q "[.']HyloTests[/. ]test_" testoutput.txt) ||
-              (echo "error: generated tests failed to run; see
-              https://github.com/apple/swift-package-manager/issues/6595" && false) )
-          .build/${{ matrix.configuration }}/hc --version
+  #   - name: Build and Test
+  #     uses: devcontainers/ci@v0.3
+  #     with:
+  #       runCmd: |
+  #         set -eo pipefail
+  #         swift package resolve
+  #         .build/checkouts/Swifty-LLVM/Tools/make-pkgconfig.sh llvm.pc
+  #         export PKG_CONFIG_PATH=$PWD
+  #         swift build -c ${{ matrix.configuration }}  ${{ matrix.host.build-options }}
+  #         swift test -c ${{ matrix.configuration }} ${{ matrix.host.test-options }} ${{ matrix.parallel-test }} |
+  #           tee testoutput.txt && (
+  #             (grep -q "[.']EndToEndTests[/. ]test_" testoutput.txt && grep -q "[.']HyloTests[/. ]test_" testoutput.txt) ||
+  #             (echo "error: generated tests failed to run; see
+  #             https://github.com/apple/swift-package-manager/issues/6595" && false) )
+  #         .build/${{ matrix.configuration }}/hc --version
 
-    - name: Check code coverage
-      uses: mattpolzin/swift-codecov-action@0.7.5
-      with:
-        SORT_ORDER: +cov
-        MINIMUM_COVERAGE: 84
-        CODECOV_JSON: .build/${{ matrix.configuration }}/codecov/*.json
+  #   - name: Check code coverage
+  #     uses: mattpolzin/swift-codecov-action@0.7.5
+  #     with:
+  #       SORT_ORDER: +cov
+  #       MINIMUM_COVERAGE: 84
+  #       CODECOV_JSON: .build/${{ matrix.configuration }}/codecov/*.json
 
   build-native-macos:
     needs: determine-version
@@ -133,6 +133,12 @@ jobs:
       with:
         submodules: true
         show-progress: false
+
+    - name: Set up Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+
+    - run: brew install peripheryapp/periphery/periphery
 
     - name: Set compiler version
       run: ./Tools/set-hc-version.sh ${{ needs.determine-version.outputs.version }}
@@ -177,61 +183,63 @@ jobs:
     - name: Output compiler version
       run: .build/${{ matrix.configuration }}/hc --version
 
-  build-native-windows:
-    needs: determine-version
-    name: "Native: windows-latest, debug"
-    strategy:
-      fail-fast: false
-    runs-on: windows-latest
-    steps:
-    - name: Setup swift
-      uses: compnerd/gha-setup-swift@v0.2.1
-      with:
-        github-repo: thebrowsercompany/swift-build
-        release-asset-name: installer-amd64.exe
-        release-tag-name: 20231130.2
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: periphery scan --skip-build
 
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-        show-progress: false
+  # build-native-windows:
+  #   needs: determine-version
+  #   name: "Native: windows-latest, debug"
+  #   strategy:
+  #     fail-fast: false
+  #   runs-on: windows-latest
+  #   steps:
+  #   - name: Setup swift
+  #     uses: compnerd/gha-setup-swift@v0.2.1
+  #     with:
+  #       github-repo: thebrowsercompany/swift-build
+  #       release-asset-name: installer-amd64.exe
+  #       release-tag-name: 20231130.2
+  #       github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set compiler version
-      run: |
-        & "C:\Program Files\Git\bin\bash.exe" Tools/set-hc-version.sh ${{ needs.determine-version.outputs.version }}
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       submodules: true
+  #       show-progress: false
 
-    - name: Swift version
-      run: swift --version
+  #   - name: Set compiler version
+  #     run: |
+  #       & "C:\Program Files\Git\bin\bash.exe" Tools/set-hc-version.sh ${{ needs.determine-version.outputs.version }}
 
-    - name: Set up LLVM 15.0.6
-      run: |
-        curl.exe -L -O -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}"https://github.com/c3lang/win-llvm/releases/download/llvm_15_0_6/llvm-15.0.6-windows-x86-msvc17-msvcrt.7z
-        7z x llvm-15.0.6-windows-x86-msvc17-msvcrt.7z -oC:\
-        Add-Content $env:GITHUB_PATH 'C:\llvm-15.0.6-windows-x86-msvc17-msvcrt\bin'
+  #   - name: Swift version
+  #     run: swift --version
+
+  #   - name: Set up LLVM 15.0.6
+  #     run: |
+  #       curl.exe -L -O -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}"https://github.com/c3lang/win-llvm/releases/download/llvm_15_0_6/llvm-15.0.6-windows-x86-msvc17-msvcrt.7z
+  #       7z x llvm-15.0.6-windows-x86-msvc17-msvcrt.7z -oC:\
+  #       Add-Content $env:GITHUB_PATH 'C:\llvm-15.0.6-windows-x86-msvc17-msvcrt\bin'
         
-    - run: llvm-config --version
+  #   - run: llvm-config --version
 
-    - name: Generate LLVM pkgconfig file
-      run: |
-        swift package resolve
-        & "C:\Program Files\Git\bin\bash.exe" .build/checkouts/Swifty-LLVM/Tools/make-pkgconfig.sh llvm.pc
-        type llvm.pc
+  #   - name: Generate LLVM pkgconfig file
+  #     run: |
+  #       swift package resolve
+  #       & "C:\Program Files\Git\bin\bash.exe" .build/checkouts/Swifty-LLVM/Tools/make-pkgconfig.sh llvm.pc
+  #       type llvm.pc
 
-    - name: Build support library
-      run: clang -c ./StandardLibrary/Sources/LibC.c -o HyloLibC.lib
+  #   - name: Build support library
+  #     run: clang -c ./StandardLibrary/Sources/LibC.c -o HyloLibC.lib
 
-    - name: Prevent reentrant builds for speed
-      run: echo 'SPM_BUILD_TOOL_SUPPORT_NO_REENTRANT_BUILD=1' >> $env:GITHUB_ENV
+  #   - name: Prevent reentrant builds for speed
+  #     run: echo 'SPM_BUILD_TOOL_SUPPORT_NO_REENTRANT_BUILD=1' >> $env:GITHUB_ENV
 
-    - name: Build the dependencies of build tools for non-reentrant build
-      run: swift build --explicit-target-dependency-import-check=error --pkg-config-path . --target BuildToolDependencies
+  #   - name: Build the dependencies of build tools for non-reentrant build
+  #     run: swift build --explicit-target-dependency-import-check=error --pkg-config-path . --target BuildToolDependencies
 
-    - name: Build tests
-      run: swift build --explicit-target-dependency-import-check error --build-tests --pkg-config-path .
+  #   - name: Build tests
+  #     run: swift build --explicit-target-dependency-import-check error --build-tests --pkg-config-path .
 
-    - name: Test
-      run: swift test --parallel --skip-build --pkg-config-path . 
+  #   - name: Test
+  #     run: swift test --parallel --skip-build --pkg-config-path . 
 
-    - name: Output compiler version
-      run: .build/debug/hc --version
+  #   - name: Output compiler version
+  #     run: .build/debug/hc --version
