@@ -115,7 +115,13 @@ jobs:
       matrix:
         host: [
           {
-            type: macos, os: macos-14,
+            type: macos, os: macos-13, arch: x86_64,
+            build-options: "--build-tests -Xswiftc -enable-testing --explicit-target-dependency-import-check error",
+            # No coverage support on MacOS
+            test-options: "--parallel"
+          },
+          {
+            type: macos, os: macos-14, arch: arm64,
             build-options: "--build-tests -Xswiftc -enable-testing --explicit-target-dependency-import-check error",
             # No coverage support on MacOS
             test-options: "--parallel"
@@ -145,9 +151,10 @@ jobs:
     - run: swift --version
 
     - name: Setup LLVM
-      uses: KyleMayes/install-llvm-action@v1
+      uses: peter-evans/install-llvm-action@arch
       with:
         version: "15.0"
+        arch: ${{ matrix.host.arch }}
 
     - run: llvm-config --version
 
