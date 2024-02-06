@@ -453,7 +453,8 @@ public struct TypedProgram {
       let a: GenericArguments = [ast[concept.decl].receiver: .type(model)]
       let t = ArrowType(specialize(declType[requirement]!, for: a, in: scopeOfUse))!
       let l: Linkage = base.isExportingDecls(scopeOfUse) ? .external : .module
-      let d = SynthesizedFunctionDecl(k, typed: t, parameterizedBy: h, in: scopeOfUse, withLinkage: l)
+      let d = SynthesizedFunctionDecl(
+        k, typed: t, parameterizedBy: h, in: scopeOfUse, withLinkage: l)
       implementations[requirement] = .synthetic(d)
     }
 
