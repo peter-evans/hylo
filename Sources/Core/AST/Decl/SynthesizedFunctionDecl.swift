@@ -38,6 +38,9 @@ public struct SynthesizedFunctionDecl: Hashable {
   /// The kind of the declaration.
   public let kind: Kind
 
+  /// The linkage of the declaration.
+  public let linkage: Linkage
+
   /// Creates an instance with the given properties.
   ///
   /// - Requires: The environment of `type` is a tuple.
@@ -45,13 +48,15 @@ public struct SynthesizedFunctionDecl: Hashable {
     _ kind: Kind,
     typed type: ArrowType,
     parameterizedBy genericParameters: [GenericParameterDecl.ID],
-    in scope: AnyScopeID
+    in scope: AnyScopeID,
+    withLinkage linkage: Linkage = .module
   ) {
     precondition(type.environment.base is TupleType)
     self.type = type
     self.genericParameters = genericParameters
     self.scope = scope
     self.kind = kind
+    self.linkage = linkage
   }
 
   /// The type of the declaration's receiver.

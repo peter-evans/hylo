@@ -1615,9 +1615,11 @@ struct TypeChecker {
 
       let t = ArrowType(expectedAPI.type)!
       let h = Array(t.environment.skolems)
+      let scopeOfUse = AnyScopeID(origin.source)!
+      let l: Linkage = program.isExportingDecls(scopeOfUse) ? .external : .module
 
       // Note: compiler-known requirement is assumed to be well-typed.
-      return .init(k, typed: t, parameterizedBy: h, in: AnyScopeID(origin.source)!)
+      return .init(k, typed: t, parameterizedBy: h, in: scopeOfUse, withLinkage: l)
     }
 
     /// Returns a concrete implementation of `requirement` for `model` with given `expectedAPI`,
