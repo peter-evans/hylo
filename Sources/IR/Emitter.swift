@@ -497,7 +497,7 @@ struct Emitter {
     let r = RemoteType(.set, program[d].type)
     let a = ArrowType(
       receiverEffect: .set, environment: ^TupleType(types: [^r]), inputs: [], output: .void)
-    let l: Linkage = program.isPublic(d) ? .external : .module
+    let l: Linkage = program.isExported(d) ? .external : .module
     let f = SynthesizedFunctionDecl(
       .globalInitialization(d), typed: a, parameterizedBy: [], in: program[d].scope, withLinkage: l)
     let i = lower(globalBindingInitializer: f)
