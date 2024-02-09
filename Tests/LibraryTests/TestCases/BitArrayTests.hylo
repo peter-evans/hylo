@@ -1,0 +1,159 @@
+//- compileAndRun expecting: success
+
+fun test_init_empty() {
+  var b = BitArray()
+  precondition(b.count() == 0)
+  precondition(b.capacity() == 0)
+}
+
+fun test_append() {
+  var b = BitArray()
+  var i = 0
+  while i <= 64 {
+    if i % 2 == 0 {
+      &b.append(true)
+    } else {
+      &b.append(false)
+    }
+    &i += 1
+  }
+
+  precondition(b.count() == 65)
+  precondition(b.capacity() == 64 * 2)
+  precondition(b[42] == true)
+  precondition(b[43] == false)
+}
+
+// fun test_set_value_for() {
+//   var b = BitArray()
+//   &b.append(true)
+//   &b[0] = false
+//   precondition(b[0] == false)
+
+//   &a.insert(42, at: 0)
+//   precondition(a[0] == 42)
+//   precondition(a[1] == 21)
+
+//   &a.insert(84, at: 1)
+//   precondition(a[0] == 42)
+//   precondition(a[1] == 84)
+//   precondition(a[2] == 21)
+// }
+
+// fun test_remove_at() {
+//   var a = Array<Int>()
+//   &a.append(21)
+//   &a.append(42)
+//   &a.append(84)
+
+//   precondition(&a.remove(at: 1) == 42)
+//   precondition(a[0] == 21)
+//   precondition(a[1] == 84)
+
+//   precondition(&a.remove(at: 1) == 84)
+//   precondition(a[0] == 21)
+// }
+
+// fun test_remove_all() {
+//   var a = Array<Int>()
+//   &a.append(21)
+//   &a.append(42)
+
+//   &a.remove_all(keeping_capacity: true)
+//   precondition(a == Array())
+//   precondition(a.capacity() > 0)
+
+//   &a.append(21)
+//   &a.remove_all()
+//   precondition(a == Array())
+//   precondition(a.capacity() == 0)
+// }
+
+// fun test_pop_last() {
+//   var a = Array<Int>()
+//   &a.append(21)
+
+//   let y = if let x: Int = &a.pop_last() { x.copy() } else { -1 }
+//   precondition(y == 21)
+//   let z = if let x: Int = &a.pop_last() { x.copy() } else { -1 }
+//   precondition(z == -1)
+// }
+
+// fun test_swap_at() {
+//   var a = Array<Bool>()
+//   &a.append(false)
+//   &a.append(true)
+//   &a.swap_at(0, 1)
+//   precondition(a[0])
+// }
+
+// fun test_reverse() {
+//   var a = Array<Int>()
+//   &a.append(21)
+//   &a.append(42)
+//   &a.append(84)
+
+//   &a.reverse()
+//   precondition(a[0] == 84)
+//   precondition(a[1] == 42)
+//   precondition(a[2] == 21)
+// }
+
+// fun test_array_is_movable() {
+//   var a = Array<Int>()
+//   &a.append(21)
+//   &a.append(42)
+//   &a.append(84)
+
+//   var b = Array<Int>()
+//   &b.append(1)
+//   &b.append(2)
+//   &b.append(3)
+
+//   &b = a
+//   precondition(b[0] == 21)
+//   precondition(b[1] == 42)
+//   precondition(b[2] == 84)
+// }
+
+// fun test_array_is_equatable() {
+//   precondition(Array<Int>() == Array<Int>())
+
+//   var a = Array<Int>()
+//   &a.append(21)
+//   &a.append(42)
+//   precondition(a == a)
+//   precondition(a != Array())
+
+//   var b = Array<Int>()
+//   &b.append(21)
+//   &b.append(42)
+//   precondition(a == b)
+// }
+
+// fun test_array_is_copyable() {
+//   var a = Array<Int>()
+//   &a.append(21)
+//   &a.append(42)
+
+//   var b = a.copy()
+//   precondition(b[0] == 21)
+//   precondition(b[1] == 42)
+
+//   &b.append(84)
+//   precondition(a.count() == 2)
+// }
+
+public fun main() {
+  test_init_empty()
+  test_append()
+  test_set_value_for()
+  // test_remove_at()
+  // test_remove_all()
+  // test_pop_last()
+  // test_swap_at()
+  // test_reverse()
+  // test_array_is_movable()
+  // test_array_is_equatable()
+  // test_array_is_copyable()
+}
