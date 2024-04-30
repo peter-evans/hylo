@@ -176,6 +176,7 @@ jobs:
       working-directory: hylo
 
     - name: Test
+      if: success()
       run: |
         swift test -c ${{ matrix.spm_configuration }} ${{ env.spm-build-options }}
         if (-not $?) { echo "FAILED" }
