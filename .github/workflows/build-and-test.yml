@@ -174,13 +174,12 @@ jobs:
       run: |
         swift build -c ${{ matrix.spm_configuration }} ${{ env.spm-build-options }} --build-tests
         ${{ matrix.windows_only }} if (-not $?) { swift build ${{ env.spm-build-options }} --target BuildToolDependencies }
-
       working-directory: hylo
 
     - name: Test
       run: |
         swift test -c ${{ matrix.spm_configuration }} ${{ env.spm-build-options }} ${{ env.spm-test-options }}
-        if (-not $?) { echo "FAILED" }
+        ${{ matrix.windows_only }} if (-not $?) { echo "FAILED" }
       working-directory: hylo
 
     - name: Configure (CMake)
