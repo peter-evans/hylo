@@ -180,9 +180,8 @@ jobs:
     - name: Test
       run: |
         swift test -c ${{ matrix.spm_configuration }} ${{ env.spm-build-options }} ${{ env.spm-test-options }}
-        ${{ matrix.windows_only }} if (-not $?) { swift test -c ${{ matrix.spm_configuration }} ${{ env.spm-test-options }} }
+        if (-not $?) { echo "FAILED" }
       working-directory: hylo
-      continue-on-error: true
 
     - name: Configure (CMake)
       # We explicitly point to swiftc in the PATH because otherwise CMake picks up the one in XCode.
@@ -198,8 +197,10 @@ jobs:
       run: cmake --build hylo/.cmake-build
 
     - name: Test (CMake)
-      run: ctest --parallel -V --test-dir hylo/.cmake-build
-      continue-on-error: true
+      run: |
+        ctest --parallel -V --test-dir hylo/.cmake-build
+        if (-not $?) { echo "FAILED" }
+      working-directory: hylo
 
     - name: Output compiler version
       run: swift run --skip-build -c ${{ matrix.spm_configuration }} hc --version
