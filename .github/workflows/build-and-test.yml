@@ -42,6 +42,7 @@ on:
 
 env:
   spm-build-options: -Xswiftc -enable-testing --explicit-target-dependency-import-check error
+  swift-version: '5.9'
 
 jobs:
   determine-version:
@@ -177,7 +178,7 @@ jobs:
     - name: Test
       run: |
         swift test -c ${{ matrix.spm_configuration }} ${{ env.spm-build-options }}
-        ${{ matrix.windows_only }} if (-not $?) { echo "FAILED" }
+        if (-not $?) { echo "FAILED" }
       working-directory: hylo
 
     - name: Configure (CMake)
